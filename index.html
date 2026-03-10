@@ -243,17 +243,17 @@ function spawnObstacle(){
 }
 
 // ── COLLISION ─────────────────────────────────────────────────────────
+// Returns the first colliding obstacle, or null
 function checkCollision(){
-  // Standing: top=y-108, h=103  |  Ducking: top=y-60, h=55
   const cy = char.duck ? char.y-60  : char.y-108;
   const ch = char.duck ? 55         : 103;
   const cx=CHAR_X-14, cw=28;
   for(const obs of obstacles){
     if(obs.x+obs.w<cx || obs.x>cx+cw) continue;
     if(obs.y+obs.h<cy || obs.y>cy+ch) continue;
-    return true;
+    return obs;   // return the actual obstacle
   }
-  return false;
+  return null;
 }
 
 // ── DRAW HELPERS ──────────────────────────────────────────────────────
@@ -518,7 +518,26 @@ function loop(){
 
     // collision
     blinkTimer++;
-    if(checkCollision()) die();
+    const hit = checkCollision();
+    if(hit){
+      if(hit.type==='dog'){
+        // dog = bonus points!
+        const bonus = 50;
+        score += bonus;
+        dist  += bonus * 5; // sync dist so score display matches
+        // floating +50 text particle
+        particles.push({
+          x: hit.x + hit.w/2, y: hit.y,
+          vx: 0, vy: -2.5,
+          life: 1.4, decay: 0.04,
+          r: 8, col: '#ffdd44', sym: `+${bonus}`,
+        });
+        // remove this dog from obstacles
+        obstacles = obstacles.filter(o => o !== hit);
+      } else {
+        die();
+      }
+    }
   }
 
   if(state==='dead'){
