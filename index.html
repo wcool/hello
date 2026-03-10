@@ -58,7 +58,7 @@
 <canvas id="c" width="800" height="380"></canvas>
 
 <div id="mobile-hint">
-  <span class="key">↑</span> 점프 &nbsp;|&nbsp; 화면 탭으로도 점프
+  <span class="key">↑</span> 점프 &nbsp;|&nbsp; <span class="key">↓</span> 구부리기 &nbsp;|&nbsp; 화면 탭 = 점프
 </div>
 
 <script>
@@ -93,8 +93,11 @@ let dist  = 0;       // total distance (for speed ramp-up)
 let frame = 0;
 
 // character
+// Standing hitbox: top = y-108, height = 103
+// Ducking hitbox:  top = y-60,  height = 55
 const char = {
   y: GROUND_Y, vy: 0, onGround: true,
+  duck: false,
   runFrame: 0,
   deathTimer: 0,
 };
@@ -123,7 +126,6 @@ const keys = {};
 document.addEventListener('keydown', e=>{
   keys[e.key]=true;
   if(['ArrowUp','ArrowDown',' '].includes(e.key)) e.preventDefault();
-  handleJump();
   if(e.key==='ArrowUp'||e.key===' ') handleJump();
   if(state==='dead'&&(e.key==='ArrowUp'||e.key===' '||e.key==='Enter')) restart();
   if(state==='start'&&(e.key==='ArrowUp'||e.key===' '||e.key==='Enter')) startGame();
@@ -136,9 +138,8 @@ canvas.addEventListener('pointerdown',()=>{
 });
 
 function handleJump(){
-  if(state==='play' && char.onGround){
+  if(state==='play' && char.onGround && !char.duck){
     char.vy = JUMP_V; char.onGround=false;
-    // spawn jump dust
     for(let i=0;i<5;i++) particles.push(dustParticle());
   }
 }
@@ -185,7 +186,7 @@ function restart(){
   state='play'; frame=0; score=0; dist=0; speed=5;
   obstacles=[]; nextObsDist=120; particles=[];
   char.y=GROUND_Y; char.vy=0; char.onGround=true;
-  char.deathTimer=0;
+  char.duck=false; char.deathTimer=0;
   document.getElementById('score-val').textContent='0';
 }
 
@@ -197,40 +198,48 @@ function die(){
 }
 
 // ── OBSTACLE SPAWN ────────────────────────────────────────────────────
-// Coding obstacle types: brace, bug, tag, null, terminal
-const OBS_TYPES=['brace','bug','tag','null_err','terminal'];
+// Ground obstacles (jump over): brace, bug, tag, null_err
+// Air obstacles   (duck under): terminal
+//
+// Standing hitbox top: GROUND_Y - 108  → standing hits terminal bottom at GROUND_Y - 72
+// Ducking  hitbox top: GROUND_Y -  60  → ducking clears terminal bottom at GROUND_Y - 72
+
 function spawnObstacle(){
-  // pick weighted type
   const r=Math.random();
   let type;
-  if(r<0.25)      type='brace';    // { } tall
-  else if(r<0.50) type='bug';      // 🐛 low
-  else if(r<0.68) type='tag';      // </> tall
-  else if(r<0.85) type='null_err'; // null block low
-  else            type='terminal'; // >_ floating mid
+  if(r<0.25)      type='brace';
+  else if(r<0.48) type='bug';
+  else if(r<0.70) type='tag';
+  else if(r<0.84) type='null_err';
+  else            type='terminal';
 
   if(type==='brace'){
-    const h=50+Math.random()*25;
-    obstacles.push({x:W+30, type, w:28, h, y:GROUND_Y-h});
+    const h=48+Math.random()*22;
+    obstacles.push({x:W+30, type, w:28, h, y:GROUND_Y-h, air:false});
   } else if(type==='bug'){
-    const h=30; const w=36;
-    obstacles.push({x:W+30, type, w, h, y:GROUND_Y-h});
+    obstacles.push({x:W+30, type, w:36, h:30, y:GROUND_Y-30, air:false});
   } else if(type==='tag'){
-    const h=45+Math.random()*20;
-    obstacles.push({x:W+30, type, w:52, h, y:GROUND_Y-h});
+    const h=44+Math.random()*20;
+    obstacles.push({x:W+30, type, w:52, h, y:GROUND_Y-h, air:false});
   } else if(type==='null_err'){
-    const h=32; const w=58;
-    obstacles.push({x:W+30, type, w, h, y:GROUND_Y-h});
-  } else { // terminal - floats
-    obstacles.push({x:W+30, type, w:56, h:30,
-      y:GROUND_Y-88-Math.random()*50});
+    obstacles.push({x:W+30, type, w:58, h:32, y:GROUND_Y-32, air:false});
+  } else {
+    // Terminal: bottom sits at GROUND_Y-72
+    // → standing char (top GROUND_Y-108) gets HIT
+    // → ducking char  (top GROUND_Y-60)  CLEARS
+    const obsH=32;
+    const bottom = GROUND_Y - 72;
+    obstacles.push({x:W+30, type, w:58, h:obsH, y:bottom-obsH, air:true});
   }
   nextObsDist = (180 + Math.random()*160) * (5/speed);
 }
 
 // ── COLLISION ─────────────────────────────────────────────────────────
 function checkCollision(){
-  const cx=CHAR_X-14, cy=char.y-105, cw=28, ch=100;
+  // Standing: top=y-108, h=103  |  Ducking: top=y-60, h=55
+  const cy = char.duck ? char.y-60  : char.y-108;
+  const ch = char.duck ? 55         : 103;
+  const cx=CHAR_X-14, cw=28;
   for(const obs of obstacles){
     if(obs.x+obs.w<cx || obs.x>cx+cw) continue;
     if(obs.y+obs.h<cy || obs.y>cy+ch) continue;
@@ -294,53 +303,73 @@ function drawHead(cx,cy,sway,blink){
 }
 
 // Stick body
-function drawBody(bx, by, runF, dead){
+function drawBody(bx, by, runF, dead, duck){
   ctx.strokeStyle=C.white; ctx.lineCap='round';
 
   if(dead){
-    // ragdoll
     ctx.lineWidth=4;
-    ctx.beginPath(); ctx.moveTo(bx,by-80); ctx.lineTo(bx,by-30); ctx.stroke(); // torso
+    ctx.beginPath(); ctx.moveTo(bx,by-70); ctx.lineTo(bx,by-25); ctx.stroke();
     ctx.lineWidth=3.5;
-    ctx.beginPath(); ctx.moveTo(bx,by-65); ctx.lineTo(bx-25,by-38); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(bx-25,by-38); ctx.lineTo(bx-30,by-20); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(bx,by-65); ctx.lineTo(bx+25,by-42); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(bx+25,by-42); ctx.lineTo(bx+18,by-24); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(bx,by-58); ctx.lineTo(bx-25,by-32); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(bx-25,by-32); ctx.lineTo(bx-30,by-14); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(bx,by-58); ctx.lineTo(bx+25,by-36); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(bx+25,by-36); ctx.lineTo(bx+18,by-18); ctx.stroke();
     ctx.lineWidth=3;
-    ctx.beginPath(); ctx.moveTo(bx,by-30); ctx.lineTo(bx-16,by-2); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(bx-16,by-2); ctx.lineTo(bx-22,by+22); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(bx,by-30); ctx.lineTo(bx+12,by-4); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(bx+12,by-4); ctx.lineTo(bx+5,by+22); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(bx,by-25); ctx.lineTo(bx-16,by+2); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(bx-16,by+2); ctx.lineTo(bx-22,by+24); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(bx,by-25); ctx.lineTo(bx+12,by+2); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(bx+12,by+2); ctx.lineTo(bx+5,by+24); ctx.stroke();
     return;
   }
 
+  if(duck){
+    // ── DUCK pose: crouched low ──
+    // torso nearly horizontal, legs bent, arms back
+    ctx.lineWidth=4;
+    // torso (horizontal-ish)
+    ctx.beginPath(); ctx.moveTo(bx+10,by-22); ctx.lineTo(bx-10,by-38); ctx.stroke();
+    // left arm back
+    ctx.lineWidth=3;
+    ctx.beginPath(); ctx.moveTo(bx-6,by-34); ctx.lineTo(bx-22,by-26); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(bx-22,by-26); ctx.lineTo(bx-32,by-18); ctx.stroke();
+    // right arm back
+    ctx.beginPath(); ctx.moveTo(bx-6,by-34); ctx.lineTo(bx+10,by-26); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(bx+10,by-26); ctx.lineTo(bx+20,by-18); ctx.stroke();
+    // left leg bent
+    ctx.lineWidth=3.5;
+    ctx.beginPath(); ctx.moveTo(bx+10,by-22); ctx.lineTo(bx-2,by-10); ctx.stroke();
+    ctx.lineWidth=3;
+    ctx.beginPath(); ctx.moveTo(bx-2,by-10); ctx.lineTo(bx-5,by+2); ctx.stroke();
+    // right leg bent
+    ctx.lineWidth=3.5;
+    ctx.beginPath(); ctx.moveTo(bx+10,by-22); ctx.lineTo(bx+20,by-10); ctx.stroke();
+    ctx.lineWidth=3;
+    ctx.beginPath(); ctx.moveTo(bx+20,by-10); ctx.lineTo(bx+22,by+2); ctx.stroke();
+    return;
+  }
+
+  // ── NORMAL running pose ──
   const p = runF;
   const la = Math.sin(p)*30;
   const ra = Math.sin(p+Math.PI)*30;
-  const kb = Math.abs(Math.sin(p))*3; // body bob
+  const kb = Math.abs(Math.sin(p))*3;
 
-  // spine
   ctx.lineWidth=4;
   ctx.beginPath(); ctx.moveTo(bx,by-80-kb); ctx.lineTo(bx,by-30); ctx.stroke();
-  // left arm
   ctx.lineWidth=3.5;
   ctx.beginPath(); ctx.moveTo(bx,by-68-kb); ctx.lineTo(bx-20+ra*0.5,by-50-kb); ctx.stroke();
   ctx.lineWidth=3;
   ctx.beginPath(); ctx.moveTo(bx-20+ra*0.5,by-50-kb); ctx.lineTo(bx-28+ra*0.6,by-36-kb); ctx.stroke();
-  // right arm
   ctx.lineWidth=3.5;
   ctx.beginPath(); ctx.moveTo(bx,by-68-kb); ctx.lineTo(bx+20+la*0.5,by-50-kb); ctx.stroke();
   ctx.lineWidth=3;
   ctx.beginPath(); ctx.moveTo(bx+20+la*0.5,by-50-kb); ctx.lineTo(bx+28+la*0.6,by-36-kb); ctx.stroke();
-  // pelvis
   ctx.lineWidth=4;
   ctx.beginPath(); ctx.moveTo(bx-10,by-30); ctx.lineTo(bx+10,by-30); ctx.stroke();
-  // left leg
   ctx.lineWidth=3.5;
   ctx.beginPath(); ctx.moveTo(bx-6,by-30); ctx.lineTo(bx-6+la*0.5,by-10); ctx.stroke();
   ctx.lineWidth=3;
   ctx.beginPath(); ctx.moveTo(bx-6+la*0.5,by-10); ctx.lineTo(bx-6+la*0.6,by+2); ctx.stroke();
-  // right leg
   ctx.lineWidth=3.5;
   ctx.beginPath(); ctx.moveTo(bx+6,by-30); ctx.lineTo(bx+6+ra*0.5,by-10); ctx.stroke();
   ctx.lineWidth=3;
@@ -449,8 +478,11 @@ function loop(){
     if(char.y >= GROUND_Y){ char.y=GROUND_Y; char.vy=0; char.onGround=true; }
     if(!char.onGround && char.y < GROUND_Y) char.onGround=false;
 
-    // run anim
-    if(char.onGround) char.runFrame += 0.22 + speed*0.015;
+    // duck (only on ground)
+    char.duck = !!(keys['ArrowDown'] || keys['s']) && char.onGround;
+
+    // run anim (faster while ducking to look like a scramble)
+    char.runFrame += char.duck ? (0.1 + speed*0.008) : (0.22 + speed*0.015);
 
     // obstacles
     nextObsDist -= speed;
@@ -539,11 +571,16 @@ function loop(){
 
   // character body
   const dead = state==='dead';
+  const duck = char.duck;
   const blink = blinkTimer%140<7;
-  const headY = char.y-100 + (char.onGround?Math.abs(Math.sin(char.runFrame))*-3:0);
-  const sway  = char.onGround ? Math.sin(char.runFrame*0.5)*3 : (char.vy<0?-5:5);
+  // Duck: head sits much lower (y-38 instead of y-100)
+  const headY = duck
+    ? char.y - 42
+    : char.y - 100 + (char.onGround ? Math.abs(Math.sin(char.runFrame))*-3 : 0);
+  const sway = duck ? Math.sin(char.runFrame*0.8)*2
+    : char.onGround ? Math.sin(char.runFrame*0.5)*3 : (char.vy<0?-5:5);
 
-  drawBody(CHAR_X, char.y, char.runFrame, dead);
+  drawBody(CHAR_X, char.y, char.runFrame, dead, duck);
   drawHead(CHAR_X, headY, sway, blink&&!dead);
 
   // ── OVERLAYS ──────────────────────────────────────────────────────
