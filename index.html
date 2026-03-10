@@ -66,6 +66,10 @@ const canvas = document.getElementById('c');
 const ctx    = canvas.getContext('2d');
 const W = canvas.width, H = canvas.height;
 
+// preload dog image
+const dogImg = new Image();
+dogImg.src = 'dog.png';
+
 // ── colours ───────────────────────────────────────────────────────────
 const C = {
   bg:      '#0d0d0d',
@@ -207,10 +211,11 @@ function die(){
 function spawnObstacle(){
   const r=Math.random();
   let type;
-  if(r<0.25)      type='brace';
-  else if(r<0.48) type='bug';
-  else if(r<0.70) type='tag';
-  else if(r<0.84) type='null_err';
+  if(r<0.20)      type='brace';
+  else if(r<0.40) type='bug';
+  else if(r<0.57) type='tag';
+  else if(r<0.72) type='null_err';
+  else if(r<0.87) type='dog';
   else            type='terminal';
 
   if(type==='brace'){
@@ -223,6 +228,9 @@ function spawnObstacle(){
     obstacles.push({x:W+30, type, w:52, h, y:GROUND_Y-h, air:false});
   } else if(type==='null_err'){
     obstacles.push({x:W+30, type, w:58, h:32, y:GROUND_Y-32, air:false});
+  } else if(type==='dog'){
+    // dog sprite: 60x55 standing on ground
+    obstacles.push({x:W+30, type, w:60, h:55, y:GROUND_Y-55, air:false});
   } else {
     // Terminal: bottom sits at GROUND_Y-72
     // → standing char (top GROUND_Y-108) gets HIT
@@ -419,6 +427,21 @@ function drawObstacle(obs){
     ctx.fillText('null',x+6,y+13);
     ctx.font='10px Fira Code'; ctx.fillStyle='rgba(255,100,100,0.8)';
     ctx.fillText('undefined',x+2,y+27);
+
+  } else if(obs.type==='dog'){
+    // pixel-art dog sprite
+    if(dogImg.complete && dogImg.naturalWidth>0){
+      ctx.drawImage(dogImg, x, y, w, h);
+    } else {
+      ctx.font=`${h+8}px serif`; ctx.fillText('🐕',x,y+h+4);
+    }
+    // bouncing "WOOF!" speech bubble
+    obs._t=(obs._t||0)+1;
+    const bY = y - 8 + Math.sin(obs._t*0.18)*4;
+    ctx.font='bold 11px Fira Code'; ctx.fillStyle='white';
+    ctx.shadowColor='#cc6600'; ctx.shadowBlur=6;
+    ctx.fillText('WOOF!', x+4, bY);
+    ctx.shadowBlur=0;
 
   } else if(obs.type==='terminal'){
     // >_ floating terminal window
