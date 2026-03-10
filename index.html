@@ -1,13 +1,12 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Claude Code Dance ✦</title>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;700&display=swap');
-
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+    @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@700&display=swap');
+    * { margin:0; padding:0; box-sizing:border-box; }
 
     body {
       background: #0d0d0d;
@@ -16,292 +15,367 @@
       align-items: center;
       justify-content: center;
       min-height: 100vh;
-      font-family: 'Fira Code', 'Courier New', monospace;
+      font-family: 'Fira Code', monospace;
       overflow: hidden;
     }
 
-    /* ── 배경 파티클 ── */
-    #particles {
-      position: fixed; inset: 0; pointer-events: none; z-index: 0;
-    }
+    /* particles */
+    #particles { position:fixed; inset:0; pointer-events:none; z-index:0; }
     .particle {
-      position: absolute;
-      font-size: 1.2rem;
+      position:absolute;
       animation: floatUp linear infinite;
-      opacity: 0;
+      opacity:0;
     }
     @keyframes floatUp {
-      0%   { transform: translateY(100vh) scale(0.5); opacity: 0; }
-      10%  { opacity: 1; }
-      90%  { opacity: 1; }
-      100% { transform: translateY(-10vh) scale(1.2); opacity: 0; }
+      0%   { transform:translateY(100vh) scale(.6); opacity:0; }
+      10%  { opacity:1; }
+      90%  { opacity:1; }
+      100% { transform:translateY(-10vh) scale(1.3); opacity:0; }
     }
 
-    /* ── 배너 ── */
+    /* banner */
     .banner {
-      position: relative; z-index: 1;
-      border: 3px solid #e07b39;
-      border-radius: 12px;
-      padding: 10px 32px;
-      margin-bottom: 24px;
-      background: rgba(224,123,57,0.08);
-      box-shadow: 0 0 32px rgba(224,123,57,0.3), inset 0 0 16px rgba(224,123,57,0.05);
-      animation: bannerGlow 2s ease-in-out infinite alternate;
+      position:relative; z-index:1;
+      border:2.5px solid #e07b39;
+      border-radius:12px;
+      padding:10px 36px;
+      margin-bottom:30px;
+      background:rgba(224,123,57,.07);
+      animation:bannerGlow 2s ease-in-out infinite alternate;
     }
     @keyframes bannerGlow {
-      from { box-shadow: 0 0 20px rgba(224,123,57,0.3); border-color: #e07b39; }
-      to   { box-shadow: 0 0 50px rgba(255,180,50,0.5); border-color: #ffb432; }
+      from { box-shadow:0 0 20px rgba(224,123,57,.3); border-color:#e07b39; }
+      to   { box-shadow:0 0 50px rgba(255,180,50,.5); border-color:#ffb432; }
     }
     .banner h1 {
-      font-size: 1.5rem;
-      font-weight: 700;
-      letter-spacing: 6px;
-      text-align: center;
-      background: linear-gradient(90deg, #e07b39, #ffb432, #ff6a00, #e07b39);
-      background-size: 200%;
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      animation: shimmer 2s linear infinite;
+      font-size:1.4rem; font-weight:700; letter-spacing:6px; text-align:center;
+      background:linear-gradient(90deg,#e07b39,#ffb432,#ff6a00,#e07b39);
+      background-size:200%;
+      -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+      animation:shimmer 2s linear infinite;
     }
-    @keyframes shimmer { to { background-position: 200%; } }
+    @keyframes shimmer { to { background-position:200%; } }
 
-    /* ── 스테이지 ── */
-    #stage {
-      position: relative; z-index: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 0;
+    /* dancer wrapper */
+    #dancer-wrap {
+      position:relative; z-index:1;
+      display:flex; flex-direction:column; align-items:center;
+      transition:transform .15s ease;
     }
 
-    /* ── 로고 (SVG 스타버스트) ── */
-    #logo-wrap {
-      width: 150px; height: 150px;
-      position: relative;
-      margin-bottom: 4px;
-    }
-    #logo-svg {
-      width: 100%; height: 100%;
-      filter: drop-shadow(0 0 18px #e07b39);
-      animation: logoSpin 8s linear infinite;
-      transform-origin: center;
-    }
-    @keyframes logoSpin {
-      0%   { filter: drop-shadow(0 0 12px #e07b39); }
-      25%  { filter: drop-shadow(0 0 28px #ffb432); }
-      50%  { filter: drop-shadow(0 0 12px #ff6a00); }
-      75%  { filter: drop-shadow(0 0 28px #ffdd00); }
-      100% { filter: drop-shadow(0 0 12px #e07b39); }
-    }
-    /* Eyes */
-    .eye {
-      position: absolute;
-      width: 14px; height: 14px;
-      background: #fff;
-      border-radius: 50%;
-      top: 50%; transform: translateY(-60%);
-      animation: blink 3s ease-in-out infinite;
-    }
-    .eye.left  { left: 38%; }
-    .eye.right { right: 38%; }
-    @keyframes blink {
-      0%,45%,55%,100% { transform: translateY(-60%) scaleY(1); }
-      50% { transform: translateY(-60%) scaleY(0.1); }
-    }
-
-    /* ── 몸통 ── */
-    #body-text {
-      font-size: 1.6rem;
-      line-height: 1.45;
-      color: #f0f0f0;
-      text-align: center;
-      text-shadow: 0 0 8px rgba(224,123,57,0.5);
-      min-height: 130px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: opacity 0.12s;
-    }
-    #body-text pre { font-family: inherit; }
-
-    /* ── 태그 ── */
+    /* tag */
     #tag {
-      margin-top: 14px;
-      font-size: 1.15rem;
-      font-weight: 700;
-      color: #ffb432;
-      text-shadow: 0 0 12px #ff6a00;
-      min-height: 2rem;
-      animation: tagPulse 0.9s ease-in-out infinite alternate;
+      margin-top:18px;
+      font-size:1.1rem; font-weight:700; color:#ffb432;
+      text-shadow:0 0 12px #ff6a00;
+      min-height:2rem;
+      animation:tagPulse .9s ease-in-out infinite alternate;
     }
     @keyframes tagPulse {
-      from { opacity: 0.7; transform: scale(0.97); }
-      to   { opacity: 1.0; transform: scale(1.03); }
+      from { opacity:.7; transform:scale(.97); }
+      to   { opacity:1;  transform:scale(1.03);}
     }
 
-    /* ── 별 스트립 ── */
+    /* stars */
     #stars {
-      margin-top: 20px;
-      font-size: 1rem;
-      color: #e07b39;
-      letter-spacing: 3px;
-      animation: starsScroll 1s linear infinite;
+      margin-top:16px;
+      font-size:.9rem; color:#e07b39; letter-spacing:4px;
+      animation:starsAnim 1s linear infinite;
+      position:relative; z-index:1;
     }
-    @keyframes starsScroll {
-      0%   { letter-spacing: 3px; }
-      50%  { letter-spacing: 6px; color: #ffb432; }
-      100% { letter-spacing: 3px; }
+    @keyframes starsAnim {
+      0%   { letter-spacing:3px; color:#e07b39; }
+      50%  { letter-spacing:7px; color:#ffb432; }
+      100% { letter-spacing:3px; color:#e07b39; }
     }
 
-    /* ── 힌트 ── */
     #hint {
-      margin-top: 28px;
-      font-size: 0.78rem;
-      color: rgba(224,123,57,0.5);
-      letter-spacing: 2px;
-      position: relative; z-index: 1;
+      margin-top:24px; font-size:.75rem;
+      color:rgba(224,123,57,.45); letter-spacing:2px;
+      position:relative; z-index:1;
+    }
+
+    /* SVG dancer */
+    #dancer-svg {
+      width:220px; height:340px;
+      overflow:visible;
+      filter:drop-shadow(0 0 14px rgba(224,123,57,.5));
     }
   </style>
 </head>
 <body>
 
-<!-- 배경 파티클 -->
 <div id="particles"></div>
 
-<!-- 배너 -->
-<div class="banner">
-  <h1>✦  CLAUDE CODE  DANCE  ✦</h1>
-</div>
+<div class="banner"><h1>✦  CLAUDE CODE  DANCE  ✦</h1></div>
 
-<!-- 스테이지 -->
-<div id="stage">
-  <!-- 로고 -->
-  <div id="logo-wrap">
-    <svg id="logo-svg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-      <!-- 스타버스트 8개 꼭지 -->
-      <polygon points="50,8 54,40 50,44 46,40" fill="#e07b39"/>
-      <polygon points="92,50 60,54 56,50 60,46" fill="#e07b39"/>
-      <polygon points="50,92 46,60 50,56 54,60" fill="#e07b39"/>
-      <polygon points="8,50 40,46 44,50 40,54" fill="#e07b39"/>
-      <polygon points="79,21 57,46 52,44 55,38" fill="#ff8c42"/>
-      <polygon points="79,79 55,62 57,56 63,57" fill="#ff8c42"/>
-      <polygon points="21,79 45,55 51,57 48,63" fill="#ff8c42"/>
-      <polygon points="21,21 45,44 43,50 37,47" fill="#ff8c42"/>
-      <!-- 중앙 원 -->
-      <circle cx="50" cy="50" r="22" fill="#cc6b2e"/>
-      <circle cx="50" cy="50" r="19" fill="#e07b39"/>
-    </svg>
-    <!-- 눈 -->
-    <div class="eye left" id="eye-l"></div>
-    <div class="eye right" id="eye-r"></div>
-  </div>
+<div id="dancer-wrap">
+  <!-- Single SVG: head + body all connected -->
+  <svg id="dancer-svg" viewBox="-60 -20 200 340" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <radialGradient id="headGrad" cx="50%" cy="50%" r="50%">
+        <stop offset="0%"   stop-color="#ff9d4e"/>
+        <stop offset="100%" stop-color="#cc5a00"/>
+      </radialGradient>
+      <filter id="glow">
+        <feGaussianBlur stdDeviation="3" result="blur"/>
+        <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+    </defs>
 
-  <!-- 몸통 -->
-  <div id="body-text"><pre id="body-pre"></pre></div>
+    <!-- ── BODY GROUP: everything moves together ── -->
+    <g id="body-group">
 
-  <!-- 태그 -->
-  <div id="tag"></div>
+      <!-- TORSO (neck + spine) -->
+      <line id="spine" x1="40" y1="105" x2="40" y2="195" stroke="#e0e0e0" stroke-width="4" stroke-linecap="round"/>
 
-  <!-- 별 -->
-  <div id="stars"></div>
+      <!-- LEFT ARM  (shoulder→elbow→hand) – two segments -->
+      <g id="arm-left">
+        <line id="arm-l-upper" x1="40" y1="125" x2="10" y2="155" stroke="#e0e0e0" stroke-width="3.5" stroke-linecap="round"/>
+        <line id="arm-l-lower" x1="10" y1="155" x2="-8"  y2="140" stroke="#e0e0e0" stroke-width="3" stroke-linecap="round"/>
+      </g>
+
+      <!-- RIGHT ARM -->
+      <g id="arm-right">
+        <line id="arm-r-upper" x1="40" y1="125" x2="70" y2="155" stroke="#e0e0e0" stroke-width="3.5" stroke-linecap="round"/>
+        <line id="arm-r-lower" x1="70" y1="155" x2="88"  y2="140" stroke="#e0e0e0" stroke-width="3" stroke-linecap="round"/>
+      </g>
+
+      <!-- PELVIS -->
+      <line id="pelvis" x1="25" y1="195" x2="55" y2="195" stroke="#e0e0e0" stroke-width="4" stroke-linecap="round"/>
+
+      <!-- LEFT LEG (hip→knee→foot) -->
+      <g id="leg-left">
+        <line id="leg-l-upper" x1="25" y1="195" x2="15" y2="245" stroke="#e0e0e0" stroke-width="3.5" stroke-linecap="round"/>
+        <line id="leg-l-lower" x1="15" y1="245" x2="5"  y2="295" stroke="#e0e0e0" stroke-width="3" stroke-linecap="round"/>
+      </g>
+
+      <!-- RIGHT LEG -->
+      <g id="leg-right">
+        <line id="leg-r-upper" x1="55" y1="195" x2="65" y2="245" stroke="#e0e0e0" stroke-width="3.5" stroke-linecap="round"/>
+        <line id="leg-r-lower" x1="65" y1="245" x2="75" y2="295" stroke="#e0e0e0" stroke-width="3" stroke-linecap="round"/>
+      </g>
+
+      <!-- HEAD (starburst + face) – sits on top of spine -->
+      <g id="head" filter="url(#glow)">
+        <!-- Starburst rays (8 rays) -->
+        <g id="rays" stroke="#e07b39" stroke-width="6" stroke-linecap="round">
+          <line x1="40" y1="52" x2="40" y2="20"/>   <!-- top -->
+          <line x1="40" y1="98" x2="40" y2="130"/>  <!-- bottom (neck) -->
+          <line x1="8"  y1="75" x2="-12" y2="75"/>  <!-- left -->
+          <line x1="72" y1="75" x2="92"  y2="75"/>  <!-- right -->
+          <!-- diagonals -->
+          <line x1="18" y1="55" x2="4"   y2="41"/>
+          <line x1="62" y1="55" x2="76"  y2="41"/>
+          <line x1="18" y1="95" x2="4"   y2="109"/>
+          <line x1="62" y1="95" x2="76"  y2="109"/>
+        </g>
+        <!-- Circle body of head -->
+        <circle cx="40" cy="75" r="28" fill="url(#headGrad)" stroke="#ff9d4e" stroke-width="2"/>
+        <!-- Eyes -->
+        <ellipse id="eye-l" cx="31" cy="70" rx="5" ry="5.5" fill="white"/>
+        <ellipse id="eye-r" cx="49" cy="70" rx="5" ry="5.5" fill="white"/>
+        <!-- Pupils -->
+        <circle id="pupil-l" cx="32" cy="71" r="2.5" fill="#1a1a1a"/>
+        <circle id="pupil-r" cx="50" cy="71" r="2.5" fill="#1a1a1a"/>
+        <!-- Mouth -->
+        <path id="mouth" d="M32,83 Q40,90 48,83" stroke="white" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+      </g>
+
+    </g><!-- /body-group -->
+  </svg>
+
+  <div id="tag">♪  준비됐나요?  ♫</div>
+  <div id="stars">✦  ★  ✧  ♪   ♫   ♪  ✧  ★  ✦</div>
 </div>
 
 <div id="hint">Ctrl+C 대신 그냥 즐겨요 🎵</div>
 
 <script>
-// ── 댄스 프레임 정의 ─────────────────────────────────────────
+// ─── dance frame definitions ───────────────────────────────────────────
+// Each frame defines the endpoint of each limb segment and body offset.
+// All coords are in the SVG's local space (shoulder/hip anchors move with body).
+// Format: { bodyY, armL:[elbowX,elbowY, handX,handY], armR:..., legL:[kneeX,kneeY,footX,footY], legR:..., tag, blink, smile }
+const SH  = 125;  // shoulder Y (fixed)
+const HIP = 195;  // hip Y (fixed)
+
 const frames = [
-  { body: `        ║        \n      ══╬══      \n        ║        \n       ╱ ╲       \n      ╱   ╲      `, tag: "♪  준비됐나요?  ♫" },
-  { body: `   \\    ║        \n  ★══╬══         \n        ║        \n       ╱ ╲       \n      ╱   ╲      `, tag: "💃  흔들흔들~  💃" },
-  { body: `   \\    ║    /   \n  ★══╬══★       \n       ║         \n      ╱ ╲        \n     ╱   ╲       `, tag: "🎵  예예예!!  🎵" },
-  { body: `        ║    /   \n        ╬══★     \n        ║        \n       ╱ ╲       \n      ╱   ╲      `, tag: "🕺  탭탭탭~  🕺" },
-  { body: `   \\        /    \n    ╲      ╱     \n  ★══╪══★       \n      ╱    ╲     \n     ╱      ╲    `, tag: "🔥  브레이크!!  🔥" },
-  { body: `       ╱║╲       \n      ╱ ║ ╲      \n     ╱  ║  ╲     \n         ║       \n        ╱╲       `, tag: "⭐  점프!!  ⭐" },
-  { body: `      ──║──      \n   ══╬═══╬══     \n        ║        \n      ──┼──      \n     ╱     ╲     `, tag: "🌀  스피인~  🌀" },
-  { body: `    ╲   ║   ╱    \n     ╲  ║  ╱     \n  ★══╪══★       \n       ╱ ╲       \n      ╱   ╲      `, tag: "💥  FINALE!!  💥" },
+  // 0 – 기본 서기
+  { tag:"♪  준비됐나요?  ♫",
+    armL:[ 10,160, -5,175 ], armR:[ 70,160, 85,175 ],
+    legL:[ 12,248, 5,295  ], legR:[ 68,248, 75,295 ],
+    bodyShift:0, smile:true, blink:false },
+
+  // 1 – 왼팔 위로
+  { tag:"💃  흔들흔들~  💃",
+    armL:[ 10,100,  -10,70 ], armR:[ 70,160, 85,175 ],
+    legL:[ 20,248, 12,295  ], legR:[ 60,248, 55,295 ],
+    bodyShift:0, smile:true, blink:false },
+
+  // 2 – 양팔 위로
+  { tag:"🎵  예예예!!  🎵",
+    armL:[ 5,100,  -15,72  ], armR:[ 75,100, 92,72  ],
+    legL:[ 30,250, 22,295  ], legR:[ 50,250, 58,295 ],
+    bodyShift:-8, smile:true, blink:false },
+
+  // 3 – 오른팔 위로
+  { tag:"🕺  탭탭탭~  🕺",
+    armL:[ 10,160, -5,175 ], armR:[ 75,100, 95,72  ],
+    legL:[ 12,248, 5,295  ], legR:[ 68,248, 75,295 ],
+    bodyShift:0, smile:true, blink:false },
+
+  // 4 – 브레이크댄스 (눈 깜박)
+  { tag:"🔥  브레이크!!  🔥",
+    armL:[ 0,145, -18,118 ], armR:[ 80,145, 98,118 ],
+    legL:[ 0,240, -15,270 ], legR:[ 80,240, 95,270 ],
+    bodyShift:0, smile:false, blink:true },
+
+  // 5 – 점프 (몸 위로)
+  { tag:"⭐  점프!!  ⭐",
+    armL:[ 5,108, -12,80  ], armR:[ 75,108, 92,80  ],
+    legL:[ 20,240, 10,278 ], legR:[ 60,240, 70,278 ],
+    bodyShift:-22, smile:true, blink:false },
+
+  // 6 – 스핀 (팔 벌림)
+  { tag:"🌀  스피인~  🌀",
+    armL:[ -10,148, -30,130 ], armR:[ 90,148, 110,130 ],
+    legL:[ 10,248, 0,295   ], legR:[ 70,248, 80,295 ],
+    bodyShift:0, smile:true, blink:false },
+
+  // 7 – 피날레
+  { tag:"💥  FINALE!!  💥",
+    armL:[ 0,108, -18,80  ], armR:[ 80,108, 98,80  ],
+    legL:[ 5,240, -8,280  ], legR:[ 75,240, 88,280 ],
+    bodyShift:-12, smile:true, blink:true },
 ];
 
 const starPats = ['✦','★','✧','✦','✵','✶'];
 
 let tick = 0;
-let frameIdx = 0;
+let fi   = 0;
+let smoothShift = 0; // for lerped body shift
 
-const bodyEl  = document.getElementById('body-pre');
+// SVG elements
+const bodyGroup = document.getElementById('body-group');
+const headG     = document.getElementById('head');
+const raysG     = document.getElementById('rays');
+
+const armLUpper = document.getElementById('arm-l-upper');
+const armLLower = document.getElementById('arm-l-lower');
+const armRUpper = document.getElementById('arm-r-upper');
+const armRLower = document.getElementById('arm-r-lower');
+const legLUpper = document.getElementById('leg-l-upper');
+const legLLower = document.getElementById('leg-l-lower');
+const legRUpper = document.getElementById('leg-r-upper');
+const legRLower = document.getElementById('leg-r-lower');
+const spine     = document.getElementById('spine');
+const pelvis    = document.getElementById('pelvis');
+
+const eyeL   = document.getElementById('eye-l');
+const eyeR   = document.getElementById('eye-r');
+const pupilL = document.getElementById('pupil-l');
+const pupilR = document.getElementById('pupil-r');
+const mouth  = document.getElementById('mouth');
+
 const tagEl   = document.getElementById('tag');
 const starsEl = document.getElementById('stars');
-const logoSvg = document.getElementById('logo-svg');
+const wrap    = document.getElementById('dancer-wrap');
 
-function getStars(t) {
-  const a = starPats[t % starPats.length];
-  const b = starPats[(t+2) % starPats.length];
-  const c = starPats[(t+4) % starPats.length];
+function setLine(el, x1,y1,x2,y2){ el.setAttribute('x1',x1); el.setAttribute('y1',y1); el.setAttribute('x2',x2); el.setAttribute('y2',y2); }
+
+function getStars(t){
+  const a=starPats[t%starPats.length]; const b=starPats[(t+2)%starPats.length]; const c=starPats[(t+4)%starPats.length];
   return `${a}  ${b}  ${c}  ♪   ♫   ♪  ${c}  ${b}  ${a}`;
 }
 
-// 로고 표정 전환
-const expressions = [
-  { scale: 'scaleY(1)',   rot: '0deg'   },
-  { scale: 'scaleY(0.1)',rot: '0deg'   },  // blink
-  { scale: 'scaleY(1)',   rot: '5deg'   },
-  { scale: 'scaleY(1.2)',rot: '-5deg'  },
-];
-const eyeL = document.getElementById('eye-l');
-const eyeR = document.getElementById('eye-r');
+// Shoulder & Hip pivots (they shift with body)
+const SHOULDER_Y = 125;
+const HIP_Y      = 195;
+const SHOULDER_X = 40;
+const HIP_L_X    = 25;
+const HIP_R_X    = 55;
+
+function applyFrame(f) {
+  // Smooth body shift
+  smoothShift += (f.bodyShift - smoothShift) * 0.4;
+  const sy = smoothShift;
+
+  // Translate entire body group
+  bodyGroup.setAttribute('transform', `translate(0, ${sy})`);
+
+  // Arms – upper segment: shoulder → elbow
+  setLine(armLUpper, SHOULDER_X, SHOULDER_Y,  f.armL[0], f.armL[1]);
+  setLine(armLLower, f.armL[0],  f.armL[1],   f.armL[2], f.armL[3]);
+  setLine(armRUpper, SHOULDER_X, SHOULDER_Y,  f.armR[0], f.armR[1]);
+  setLine(armRLower, f.armR[0],  f.armR[1],   f.armR[2], f.armR[3]);
+
+  // Legs
+  setLine(legLUpper, HIP_L_X, HIP_Y, f.legL[0], f.legL[1]);
+  setLine(legLLower, f.legL[0], f.legL[1], f.legL[2], f.legL[3]);
+  setLine(legRUpper, HIP_R_X, HIP_Y, f.legR[0], f.legR[1]);
+  setLine(legRLower, f.legR[0], f.legR[1], f.legR[2], f.legR[3]);
+
+  // Head subtle sway (rays also rotate a tiny bit)
+  const sway = Math.sin(tick * 0.55) * 5;
+  headG.setAttribute('transform', `rotate(${sway}, 40, 75)`);
+
+  // Glow pulse on rays
+  const glowAmt = 12 + Math.abs(Math.sin(tick*0.4)) * 16;
+  raysG.style.filter = `drop-shadow(0 0 ${glowAmt}px #ff8c30)`;
+
+  // Eyes: blink
+  if (f.blink) {
+    eyeL.setAttribute('ry','0.7'); eyeR.setAttribute('ry','0.7');
+    pupilL.setAttribute('r','0'); pupilR.setAttribute('r','0');
+  } else {
+    eyeL.setAttribute('ry','5.5'); eyeR.setAttribute('ry','5.5');
+    pupilL.setAttribute('r','2.5'); pupilR.setAttribute('r','2.5');
+    // eyes follow arm direction slightly
+    const gazeX = (f.armR[0] > 60) ? 1 : (f.armL[0] < 20) ? -1 : 0;
+    pupilL.setAttribute('cx', 32 + gazeX);
+    pupilR.setAttribute('cx', 50 + gazeX);
+  }
+
+  // Mouth
+  if (f.smile) {
+    mouth.setAttribute('d','M32,83 Q40,90 48,83');
+  } else {
+    mouth.setAttribute('d','M32,85 Q40,80 48,85');
+  }
+
+  // Tag / stars
+  tagEl.textContent   = f.tag;
+  starsEl.textContent = getStars(tick);
+}
 
 function animate() {
-  const f = frames[frameIdx % frames.length];
-
-  // 몸통
-  bodyEl.textContent = f.body;
-  tagEl.textContent  = f.tag;
-  starsEl.textContent = getStars(tick);
-
-  // 로고 흔들기
-  const angle = Math.sin(tick * 0.7) * 8;
-  logoSvg.style.transform = `rotate(${angle}deg)`;
-
-  // 눈 깜박 (특정 프레임)
-  if (frameIdx % frames.length === 4) {
-    eyeL.style.transform = eyeR.style.transform = 'translateY(-60%) scaleY(0.1)';
-  } else {
-    eyeL.style.transform = eyeR.style.transform = '';
-  }
-
-  // 점프 프레임: 스테이지 살짝 위로
-  const stage = document.getElementById('stage');
-  if (frameIdx % frames.length === 5) {
-    stage.style.transform = 'translateY(-18px)';
-  } else {
-    stage.style.transform = '';
-  }
-
+  const f = frames[fi % frames.length];
+  applyFrame(f);
   tick++;
-  frameIdx++;
+  fi++;
 }
 
-setInterval(animate, 180);
+setInterval(animate, 200);
 animate();
 
-// ── 파티클 생성 ──────────────────────────────────────────────
-const particleSymbols = ['✦','★','♪','♫','✧','🎵','🔥','⭐'];
-const container = document.getElementById('particles');
-
-function spawnParticle() {
+// ─── particles ────────────────────────────────────────────────────────
+const syms = ['✦','★','♪','♫','✧','🎵','🔥','⭐'];
+const pc = document.getElementById('particles');
+function spawn(){
   const el = document.createElement('div');
-  el.className = 'particle';
-  el.textContent = particleSymbols[Math.floor(Math.random() * particleSymbols.length)];
-  el.style.left = Math.random() * 100 + 'vw';
-  el.style.color = `hsl(${25 + Math.random()*30}, 100%, 60%)`;
-  const dur = 4 + Math.random() * 5;
-  el.style.animationDuration = dur + 's';
-  el.style.animationDelay = '-' + (Math.random() * dur) + 's';
-  el.style.fontSize = (0.8 + Math.random() * 1.2) + 'rem';
-  container.appendChild(el);
-  setTimeout(() => el.remove(), dur * 1000 + 500);
+  el.className='particle';
+  el.textContent = syms[Math.floor(Math.random()*syms.length)];
+  el.style.left  = Math.random()*100+'vw';
+  el.style.color = `hsl(${20+Math.random()*40},100%,60%)`;
+  const d = 4+Math.random()*5;
+  el.style.animationDuration = d+'s';
+  el.style.animationDelay   = '-'+(Math.random()*d)+'s';
+  el.style.fontSize = (.8+Math.random()*1.1)+'rem';
+  pc.appendChild(el);
+  setTimeout(()=>el.remove(), d*1000+500);
 }
-
-setInterval(spawnParticle, 400);
-for (let i = 0; i < 15; i++) spawnParticle();
+setInterval(spawn,350);
+for(let i=0;i<14;i++) spawn();
 </script>
 </body>
 </html>
